@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class UserModel extends Migration
+class StoreModel extends Migration
 {
     public function up()
     {
@@ -15,29 +15,9 @@ class UserModel extends Migration
                 'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'email' => [
+            'storeName' => [
                 'type' => 'VARCHAR',
                 'constraint' => '100',
-            ],
-            'username' => [
-                'type' => 'VARCHAR',
-                'constraint' => '100',
-            ],
-            'password' => [
-                'type' => 'VARCHAR',
-                'constraint' => '100',
-            ],
-            'name' => [
-                'type' => 'VARCHAR',
-                'constraint' => '100',
-            ],
-            'age' => [
-                'type' => 'INT',
-                'constraint' => 3,
-            ],
-            'gender' => [
-                'type' => 'VARCHAR',
-                'constraint' => '10',
             ],
             'address' => [
                 'type' => 'VARCHAR',
@@ -45,7 +25,15 @@ class UserModel extends Migration
             ],
             'phone' => [
                 'type' => 'VARCHAR',
-                'constraint' => '12',
+                'constraint' => '20',
+            ],
+            'email' => [
+                'type' => 'VARCHAR',
+                'constraint' => '100',
+            ],
+            'storeCategory' => [
+                'type' => 'INT',
+                'constraint' => '100',
             ],
             'createdAt' => [
                 'type' => 'DATETIME',
@@ -62,11 +50,11 @@ class UserModel extends Migration
             ],
         ]);
         $this->forge->addKey('id', true); // primary key
-        $this->forge->createTable('user');
+        $this->forge->createTable('store');
     }
 
     public function down()
     {
-        $this->forge->dropTable('user');
+        $this->forge->dropTable('store');
     }
 }

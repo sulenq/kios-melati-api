@@ -47,4 +47,9 @@ class Validation extends BaseConfig
     {
         return $str === 'Male' || $str === 'Female';
     }
+
+    public function check_role($str)
+    {
+        return $str === 'Admin' || $str === 'Cashier';
+    }
 }

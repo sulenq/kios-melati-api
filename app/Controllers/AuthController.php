@@ -17,6 +17,7 @@ class AuthController extends ResourceController
         $jwtKey = getenv('JWT_SECRET');
         $jwtAlg = getenv('JWT_ALG');
         $payload = [
+            'id' => $user['id'],
             'username' => $user['username'],
             'name' => $user['name'],
             'age' => $user['age'],
@@ -32,25 +33,26 @@ class AuthController extends ResourceController
         return JWT::encode($payload, $jwtKey, $jwtAlg);
     }
 
-    public function parseToken($jwt) // return payload
-    {
-        $jwtKey = getenv('JWT_SECRET');
-        $jwtAlg = getenv('JWT_ALG');
-        $decoded = JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
-        return $decoded;
-    }
 
     public function verifyToken() // return boolean
     {
         $authHeader = $this->request->getHeader('Authorization');
         $jwt = substr($authHeader->getValue(), 7); // Menghapus 'Bearer '
-
         try {
-            $decoded = $this->parseToken($jwt);
-            return $this->respond(['message' => 'Token valid', 'payload' => (array) $decoded], 200);
+            $jwtKey = getenv('JWT_SECRET');
+            $jwtAlg = getenv('JWT_ALG');
+            $decoded = JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
+
+            if ($decoded) {
+                return $this->respond(['message' => 'Token valid', 'payload' => (array) $decoded], 200);
+            } else {
+                return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
+            }
         } catch (\Exception $e) {
             return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
         }
+
+
     }
 
     public function signin()

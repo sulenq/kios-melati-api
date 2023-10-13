@@ -12,16 +12,26 @@ class UserController extends ResourceController
     public function index()
     {
         $response = [
-            'message' => 'success',
+            'message' => 'Get all users',
             'usersData' => $this->model->orderBy('id', 'DESC')->findAll()
         ];
 
         return $this->respond($response, 200);
     }
 
-    public function show($id = null)
+    public function read($id = null)
     {
-        //
+        $user = $this->model->find($id);
+
+        if ($user) {
+            $response = [
+                'message' => 'User found',
+                'userData' => $user
+            ];
+            return $this->respond($response, 200);
+        } else {
+            return $this->respond(['message' => 'User not found'], 409);
+        }
     }
 
     public function create()
@@ -29,7 +39,7 @@ class UserController extends ResourceController
         $valid = $this->validate([
             'email' => [
                 'label' => 'Email',
-                'rules' => 'required|valid_email|is_unique[users.email]|max_length[50]',
+                'rules' => 'required|valid_email|is_unique[user.email]|max_length[100]',
                 'errors' => [
                     'valid_email' => '{field} invalid.',
                     'is_unique' => '{field} is already registered.'
@@ -37,7 +47,7 @@ class UserController extends ResourceController
             ],
             'username' => [
                 'label' => 'Username',
-                'rules' => 'required|is_unique[users.username]|max_length[100]',
+                'rules' => 'required|is_unique[user.username]|max_length[100]',
                 'errors' => [
                     'is_unique' => '{field} is not available.'
                 ]
@@ -52,11 +62,11 @@ class UserController extends ResourceController
             ],
             'age' => [
                 'label' => 'Age',
-                'rules' => 'required|max_length[3]',
+                'rules' => 'required|max_length[11]',
             ],
             'gender' => [
                 'label' => 'Gender',
-                'rules' => 'required|check_gender|max_length[10]',
+                'rules' => 'required|check_gender|max_length[100]',
                 'errors' => [
                     'check_gender' => '{field} is invalid.'
                 ]
@@ -67,7 +77,7 @@ class UserController extends ResourceController
             ],
             'phone' => [
                 'label' => 'Phone',
-                'rules' => 'required|max_length[20]',
+                'rules' => 'required|max_length[100]',
             ],
         ]);
 
