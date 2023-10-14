@@ -12,8 +12,8 @@ class UserController extends ResourceController
     public function index()
     {
         $response = [
-            'message' => 'Get all users',
-            'usersData' => $this->model->orderBy('id', 'DESC')->findAll()
+            'message' => 'Get all users success',
+            'users' => $this->model->orderBy('id', 'DESC')->findAll()
         ];
 
         return $this->respond($response, 200);
@@ -25,12 +25,17 @@ class UserController extends ResourceController
 
         if ($user) {
             $response = [
+                'status' => 200,
                 'message' => 'User found',
-                'userData' => $user
+                'user' => $user
             ];
-            return $this->respond($response, 200);
+            return $this->respond($response);
         } else {
-            return $this->respond(['message' => 'User not found'], 409);
+            $response = [
+                'status' => 404,
+                'message' => 'User not found'
+            ];
+            return $this->respond($response);
         }
     }
 
@@ -83,10 +88,11 @@ class UserController extends ResourceController
 
         if (!$valid) {
             $response = [
-                'message' => $this->validator->getErrors()
+                'status' => 400,
+                'invalid' => $this->validator->getErrors()
             ];
 
-            return $this->failValidationErrors($response);
+            return $this->respond($response);
         }
 
         $password = $this->request->getVar('password');
@@ -104,10 +110,11 @@ class UserController extends ResourceController
         ]);
 
         $response = [
+            'status' => 201,
             'message' => 'User registered. Email : ' . $this->request->getVar('email') . ', Username : ' . $this->request->getVar('username') . ', Name : ' . $this->request->getVar('name')
         ];
 
-        return $this->respondCreated($response);
+        return $this->respond($response);
     }
 
     public function edit($id = null)

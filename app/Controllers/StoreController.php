@@ -4,19 +4,20 @@ namespace App\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\EmployeeModel;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
+use App\Libraries\JwtPayload;
 
 
 class StoreController extends ResourceController
 {
     protected $modelName = 'App\Models\StoreModel';
     protected $format = 'json';
+
     public function index()
     {
         $response = [
-            'message' => 'Get all stores',
-            'usersData' => $this->model->orderBy('id', 'DESC')->findAll()
+            'status' => 200,
+            'message' => 'Get all stores success',
+            'stores' => $this->model->orderBy('id', 'DESC')->findAll()
         ];
 
         return $this->respond($response, 200);
@@ -28,43 +29,25 @@ class StoreController extends ResourceController
 
         if ($store) {
             $response = [
+                'status' => 200,
                 'message' => 'Store found',
                 'storeData' => $store
             ];
             return $this->respond($response, 200);
         } else {
-            return $this->respond(['message' => 'Store not found'], 409);
+            $response = [
+                'status' => 404,
+                'message' => 'Store not found',
+                'storeId' => $id
+            ];
+            return $this->respond($response);
         }
     }
 
     public function create()
     {
-        $authHeader = $this->request->getHeader('Authorization');
-
-        if (!$authHeader) {
-            return $this->respond(['message' => 'Sign in required'], 401);
-        }
-
-        $jwt = substr($authHeader->getValue(), 7); // Menghapus 'Bearer '
-        $employeeModel = new EmployeeModel();
-
-        try {
-            $jwtKey = getenv('JWT_SECRET');
-            $jwtAlg = getenv('JWT_ALG');
-            $decoded = JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
-
-            if (!$decoded) {
-                return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-            }
-        } catch (\Exception $e) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-        }
-
-        if (!$decoded) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-        }
-
-        $payload = (array) $decoded;
+        $jwt = new JwtPayload($this->request);
+        $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
 
         $valid = $this->validate([
@@ -96,10 +79,10 @@ class StoreController extends ResourceController
 
         if (!$valid) {
             $response = [
-                'message' => $this->validator->getErrors()
+                'status' => 400,
+                'invalid' => $this->validator->getErrors()
             ];
-
-            return $this->failValidationErrors($response);
+            return $this->respond($response);
         }
 
         $storeId = $this->model->insert([
@@ -111,112 +94,101 @@ class StoreController extends ResourceController
             'category' => esc($this->request->getVar('category')),
         ]);
 
-
         $employeeModel = new EmployeeModel();
         $employeeModel->insert([
             'userId' => $userId,
             'storeId' => $storeId,
-            'role' => 'Admin'
+            'role' => 'Admin',
+            'status' => 'Owner',
+            'salary => 0'
         ]);
 
         $response = [
+            'status' => 201,
             'message' => 'Store registered. Store Name : ' . $this->request->getVar('storeName')
         ];
 
-        return $this->respondCreated($response);
+        return $this->respondCreated($response, 201);
     }
 
     public function update($id = null)
     {
-        $authHeader = $this->request->getHeader('Authorization');
-
-        if (!$authHeader) {
-            return $this->respond(['message' => 'Sign in required'], 401);
-        }
-
-        $jwt = substr($authHeader->getValue(), 7); // Menghapus 'Bearer '
-        $employeeModel = new EmployeeModel();
-
-        try {
-            $jwtKey = getenv('JWT_SECRET');
-            $jwtAlg = getenv('JWT_ALG');
-            $decoded = JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
-        } catch (\Exception $e) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-        }
-
-
-        if (!$decoded) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-        }
-
-        $payload = (array) $decoded;
+        $jwt = new JwtPayload($this->request);
+        $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
         $storeId = $id;
 
+        $store = $this->model->find($id);
+        if (!$store) {
+            $response = [
+                'status' => 404,
+                'message' => 'Store not found',
+                'Store ID' => $storeId
+            ];
+            return $this->respond($response);
+        }
+
+        $employeeModel = new EmployeeModel();
         $employee = $employeeModel->where('userId', $userId)
             ->where('storeId', $storeId)
+            ->where('status', 'Owner')
             ->first();
-
-        $store = $this->model->find($id);
-
-        if (!$store) {
-            return $this->respond(['message' => 'Store not found', 'Store ID' => $storeId], 409);
-        }
-
         if (!$employee) {
-            return $this->respond(['message' => 'You are not authorized to do this action, User ID :' . $userId . ", Store ID :" . $storeId], 405);
+            $response = [
+                'status' => 403,
+                'message' => 'You are not authorized to do this action',
+                'userId' => $userId,
+                'storeId' => $storeId
+            ];
+            return $this->respond($response);
         }
 
-        $data = $this->request->getJSON();
-        $updateData = $data->updateData;
+        $updateData = $this->request->getJSON();
 
         $this->model->update($storeId, $updateData);
-        return $this->respond(['message' => 'Store updated'], 200);
+        $response = [
+            'status' => 200,
+            'message' => 'Store updated'
+        ];
+        return $this->respond($response);
     }
 
     public function delete($id = null)
     {
-        $authHeader = $this->request->getHeader('Authorization');
-
-        if (!$authHeader) {
-            return $this->respond(['message' => 'Sign in required'], 401);
-        }
-
-        $jwt = substr($authHeader->getValue(), 7); // Menghapus 'Bearer '
-        $employeeModel = new EmployeeModel();
-
-        try {
-            $jwtKey = getenv('JWT_SECRET');
-            $jwtAlg = getenv('JWT_ALG');
-            $decoded = JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
-        } catch (\Exception $e) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-        }
-
-        if (!$decoded) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-        }
-
-        $payload = (array) $decoded;
+        $jwt = new JwtPayload($this->request);
+        $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
         $storeId = $id;
 
-        $employee = $employeeModel->where('userId', $userId)
-            ->where('storeId', $storeId)
-            ->first();
-
         $store = $this->model->find($id);
-
-        if (!$employee) {
-            return $this->respond(['message' => 'You are not authorized to do this action, User ID :' . $userId . ", Store ID :" . $storeId], 405);
-        }
-
         if (!$store) {
             return $this->respond(['message' => 'Store not found', 'Store ID' => $storeId], 409);
         }
 
+        $employeeModel = new EmployeeModel();
+        $employee = $employeeModel->where('userId', $userId)
+            ->where('storeId', $storeId)
+            ->first();
+        if (!$employee) {
+            $response = [
+                'status' => 403,
+                'message' => 'You are not authorized to do this action',
+                'userId' => $userId,
+                'storeId' => $storeId
+            ];
+            return $this->respond($response);
+        }
+
         $this->model->delete($id);
-        return $this->respondDeleted(['message' => 'Store deleted']);
+        $employeeModel->delete($employee['id']);
+
+        $response = [
+            'status' => 200,
+            'message' => 'Store deleted',
+            'storeId' => $storeId,
+            'storeName' => $store['storeName']
+        ];
+
+        return $this->respond($response);
     }
 }

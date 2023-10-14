@@ -33,7 +33,6 @@ class AuthController extends ResourceController
         return JWT::encode($payload, $jwtKey, $jwtAlg);
     }
 
-
     public function verifyToken() // return boolean
     {
         $authHeader = $this->request->getHeader('Authorization');
@@ -42,17 +41,28 @@ class AuthController extends ResourceController
             $jwtKey = getenv('JWT_SECRET');
             $jwtAlg = getenv('JWT_ALG');
             $decoded = JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
-
-            if ($decoded) {
-                return $this->respond(['message' => 'Token valid', 'payload' => (array) $decoded], 200);
-            } else {
-                return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
-            }
         } catch (\Exception $e) {
-            return $this->respond(['message' => 'Token invalid', 'jwt' => $jwt], 401);
+            $response = [
+                'status' => 401,
+                'message' => 'Unauthorized',
+            ];
+            return $this->respond($response);
         }
 
+        if (!$decoded) {
+            $response = [
+                'status' => 401,
+                'message' => 'Unauthorized',
+            ];
+            return $this->respond($response);
+        }
 
+        $response = [
+            'status' => 200,
+            'message' => 'Authorized',
+            'payload' => (array) $decoded
+        ];
+        return $this->respond($response);
     }
 
     public function signin()
@@ -75,25 +85,35 @@ class AuthController extends ResourceController
         $emailOrUsername = $this->request->getVar('emailOrUsername');
         $password = $this->request->getVar('password');
 
-        // Cari user berdasarkan email atau username
         $user = $this->model->where('email', $emailOrUsername)
             ->orWhere('username', $emailOrUsername)
             ->first();
 
-        if ($user) {
-            // Verifikasi password
-            if (password_verify($password, $user['password'])) {
-                // Login berhasil
-                $jwt = $this->generate_jwt($user);
-                // $jwt = new JWTCI4;
-                return $this->respond(['message' => 'Signed In', 'jwt' => $jwt], 200);
-            } else {
-                // Password salah
-                return $this->respond(['message' => 'Password is not match'], 401);
-            }
-        } else {
-            // User tidak ditemukan
-            return $this->respond(['message' => 'User not found'], 409);
+        if (!$user) {
+            $response = [
+                'status' => 404,
+                'message' => 'User not found'
+            ];
+
+            return $this->respond($response);
         }
+
+        if (!password_verify($password, $user['password'])) {
+            $response = [
+                'status' => 400,
+                'message' => 'Password is not match'
+            ];
+
+            return $this->respond($response);
+        }
+
+        $jwt = $this->generate_jwt($user);
+        $response = [
+            'status' => 200,
+            'message' => 'Signed In',
+            'jwt' => $jwt
+        ];
+
+        return $this->respond($response);
     }
 }

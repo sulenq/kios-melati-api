@@ -14,8 +14,8 @@ $routes->post('user-create', 'UserController::create');
 $routes->post('signin', 'AuthController::signin');
 $routes->post('verify-token', 'AuthController::verifyToken');
 
-$routes->get('store', 'StoreController::index');
-$routes->get('store/(:any)', 'StoreController::read/$1');
-$routes->post('store-create', 'StoreController::create');
-$routes->patch('store-update/(:any)', 'StoreController::update/$1');
-$routes->delete('store-delete/(:any)', 'StoreController::delete/$1');
+$routes->get('store', 'StoreController::index', ['filter' => 'authJWT']);
+$routes->get('store/(:any)', 'StoreController::read/$1', ['filter' => 'authJWT']);
+$routes->post('store-create', 'StoreController::create', ['filter' => 'authJWT']);
+$routes->patch('store-update/(:any)', 'StoreController::update/$1', ['filter' => 'authJWT']);
+$routes->delete('store-delete/(:any)', 'StoreController::delete/$1', ['filter' => 'authJWT']);

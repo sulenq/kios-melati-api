@@ -3,30 +3,41 @@ namespace App\Middleware;
 
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
-use CodeIgniter\Config\Services;
+use CodeIgniter\Filters\FilterInterface;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
 
-class AuthJWT
+class AuthJWT implements FilterInterface
 {
-    public function handle($request, \Closure $next)
+    public function before(RequestInterface $request, $arguments = null)
     {
         $jwtKey = getenv('JWT_SECRET');
         $jwtAlg = getenv('JWT_ALG');
-        $headers = $request->getHeaders();
-        if (!isset($headers['Authorization'])) {
-            return Services::response()
-                ->setJSON(['message' => 'Token not provided'])
-                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
+        $authHeader = $request->getHeader('Authorization');
+        $rc = service('response');
+
+        if (!$authHeader) {
+            $response = [
+                'status' => 401,
+                'message' => 'Unauthorized'
+            ];
+            return $rc->setJSON($response);
         }
 
-        $jwt = $headers['Authorization'];
+        $jwt = substr($authHeader->getValue(), 7); // Menghapus 'Bearer '
+
         try {
             JWT::decode($jwt, new Key($jwtKey, $jwtAlg));
         } catch (\Exception $e) {
-            return Services::response()
-                ->setJSON(['message' => 'Invalid token'])
-                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
+            $response = [
+                'status' => 401,
+                'message' => 'Unauthorized'
+            ];
+            return $rc->setJSON($response);
         }
+    }
 
-        return $next($request);
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+    {
     }
 }
