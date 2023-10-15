@@ -24,7 +24,8 @@ class Filters extends BaseConfig
         'honeypot' => Honeypot::class,
         'invalidchars' => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'authJWT' => \App\Middleware\AuthJWT::class,
+        'authJWT' => \App\Filters\AuthJWT::class,
+        'authOwner' => \App\Filters\AuthOwner::class,
     ];
 
     /**

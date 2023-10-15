@@ -13,7 +13,6 @@ class JwtPayload
 
     public function __construct(IncomingRequest $request)
     {
-        // Ganti dengan kunci rahasia Anda
         $this->jwtKey = getenv('JWT_SECRET');
         $this->jwtAlg = getenv('JWT_ALG');
         $this->request = $request;

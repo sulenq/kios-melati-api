@@ -1,5 +1,5 @@
 <?php
-namespace App\Middleware;
+namespace App\Filters;
 
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
@@ -14,14 +14,14 @@ class AuthJWT implements FilterInterface
         $jwtKey = getenv('JWT_SECRET');
         $jwtAlg = getenv('JWT_ALG');
         $authHeader = $request->getHeader('Authorization');
-        $rc = service('response');
+        $res = service('response');
 
         if (!$authHeader) {
             $response = [
                 'status' => 401,
                 'message' => 'Unauthorized'
             ];
-            return $rc->setJSON($response);
+            return $res->setJSON($response);
         }
 
         $jwt = substr($authHeader->getValue(), 7); // Menghapus 'Bearer '
@@ -33,7 +33,7 @@ class AuthJWT implements FilterInterface
                 'status' => 401,
                 'message' => 'Unauthorized'
             ];
-            return $rc->setJSON($response);
+            return $res->setJSON($response);
         }
     }
 

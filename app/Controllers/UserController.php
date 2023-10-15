@@ -7,11 +7,11 @@ use CodeIgniter\RESTful\ResourceController;
 class UserController extends ResourceController
 {
     protected $modelName = 'App\Models\UserModel';
-    protected $format = 'json';
 
-    public function index()
+    public function readAll()
     {
         $response = [
+            'status' => 200,
             'message' => 'Get all users success',
             'users' => $this->model->orderBy('id', 'DESC')->findAll()
         ];
@@ -23,20 +23,21 @@ class UserController extends ResourceController
     {
         $user = $this->model->find($id);
 
-        if ($user) {
-            $response = [
-                'status' => 200,
-                'message' => 'User found',
-                'user' => $user
-            ];
-            return $this->respond($response);
-        } else {
+        if (!$user) {
             $response = [
                 'status' => 404,
-                'message' => 'User not found'
+                'message' => 'User not found',
+                'userId' => $id
             ];
             return $this->respond($response);
         }
+
+        $response = [
+            'status' => 200,
+            'message' => 'User found',
+            'user' => $user
+        ];
+        return $this->respond($response);
     }
 
     public function create()

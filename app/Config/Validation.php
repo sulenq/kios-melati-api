@@ -2,6 +2,8 @@
 
 namespace Config;
 
+use App\Models\EmployeeModel;
+use App\Models\UserModel;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Validation\StrictRules\CreditCardRules;
 use CodeIgniter\Validation\StrictRules\FileRules;
@@ -43,13 +45,37 @@ class Validation extends BaseConfig
     // Rules
     // --------------------------------------------------------------------
 
-    public function check_gender($str)
+    public function check_gender($gender)
     {
-        return $str === 'Male' || $str === 'Female';
+        return $gender === 'Male' || $gender === 'Female';
     }
 
-    public function check_role($str)
+    public function check_role($role)
     {
-        return $str === 'Admin' || $str === 'Cashier';
+        return $role === 'Admin' || $role === 'Cashier';
     }
+
+    public function check_user($id)
+    {
+        $userModel = new UserModel();
+        $user = $userModel->find($id);
+        if ($user) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function check_status($status)
+    {
+        return $status === 'Owner' || $status === 'Permanent' || $status === 'Contract' || $status === 'Magang';
+    }
+
+    // public function check_employee($status)
+    // {
+    //     $employeeModel = new EmployeeModel();
+    //     $req = service('request');
+    //     $userId = $req->uri->getSegment(3);
+    //     $employee = $employeeModel->where('userId', $userId)
+    // }
 }

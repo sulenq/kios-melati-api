@@ -12,7 +12,7 @@ class StoreController extends ResourceController
     protected $modelName = 'App\Models\StoreModel';
     protected $format = 'json';
 
-    public function index()
+    public function readAll()
     {
         $response = [
             'status' => 200,
@@ -23,9 +23,9 @@ class StoreController extends ResourceController
         return $this->respond($response, 200);
     }
 
-    public function read($id = null)
+    public function read($storeId = null)
     {
-        $store = $this->model->find($id);
+        $store = $this->model->find($storeId);
 
         if ($store) {
             $response = [
@@ -38,7 +38,55 @@ class StoreController extends ResourceController
             $response = [
                 'status' => 404,
                 'message' => 'Store not found',
-                'storeId' => $id
+                'storeId' => $storeId
+            ];
+            return $this->respond($response);
+        }
+    }
+
+    public function readByAdminUser($storeId = null)
+    {
+        $employeeModel = new EmployeeModel();
+        $employee = $employeeModel->where('userId', $storeId)
+            ->where('role', 'Admin')
+            ->findAll();
+
+        if ($employee) {
+            $response = [
+                'status' => 200,
+                'message' => 'Store found',
+                'storeData' => $employee
+            ];
+            return $this->respond($response, 200);
+        } else {
+            $response = [
+                'status' => 404,
+                'message' => 'Store not found',
+                'userId' => $storeId
+            ];
+            return $this->respond($response);
+        }
+    }
+
+    public function readByCashierUser($storeId = null)
+    {
+        $employeeModel = new EmployeeModel();
+        $employee = $employeeModel->where('userId', $storeId)
+            ->where('role', 'Cashier')
+            ->findAll();
+
+        if ($employee) {
+            $response = [
+                'status' => 200,
+                'message' => 'Store found',
+                'storeData' => $employee
+            ];
+            return $this->respond($response, 200);
+        } else {
+            $response = [
+                'status' => 404,
+                'message' => 'Store not found',
+                'userId' => $storeId
             ];
             return $this->respond($response);
         }
@@ -100,6 +148,13 @@ class StoreController extends ResourceController
             'storeId' => $storeId,
             'role' => 'Admin',
             'status' => 'Owner',
+            'salary' => 0,
+        ]);
+        $employeeModel->insert([
+            'userId' => $userId,
+            'storeId' => $storeId,
+            'role' => 'Cashier',
+            'status' => 'Owner',
             'salary => 0'
         ]);
 
@@ -111,14 +166,13 @@ class StoreController extends ResourceController
         return $this->respondCreated($response, 201);
     }
 
-    public function update($id = null)
+    public function update($storeId = null)
     {
         $jwt = new JwtPayload($this->request);
         $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
-        $storeId = $id;
 
-        $store = $this->model->find($id);
+        $store = $this->model->find($storeId);
         if (!$store) {
             $response = [
                 'status' => 404,
@@ -145,42 +199,68 @@ class StoreController extends ResourceController
 
         $updateData = $this->request->getJSON();
 
-        $this->model->update($storeId, $updateData);
-        $response = [
-            'status' => 200,
-            'message' => 'Store updated'
-        ];
-        return $this->respond($response);
-    }
-
-    public function delete($id = null)
-    {
-        $jwt = new JwtPayload($this->request);
-        $payload = (array) $jwt->getPayload();
-        $userId = $payload['id'];
-        $storeId = $id;
-
-        $store = $this->model->find($id);
-        if (!$store) {
-            return $this->respond(['message' => 'Store not found', 'Store ID' => $storeId], 409);
-        }
-
-        $employeeModel = new EmployeeModel();
-        $employee = $employeeModel->where('userId', $userId)
-            ->where('storeId', $storeId)
-            ->first();
-        if (!$employee) {
+        if (!$updateData) {
             $response = [
-                'status' => 403,
-                'message' => 'You are not authorized to do this action',
-                'userId' => $userId,
-                'storeId' => $storeId
+                'status' => 400,
+                'message' => 'No data provided'
             ];
             return $this->respond($response);
         }
 
-        $this->model->delete($id);
-        $employeeModel->delete($employee['id']);
+        $valid = $this->validate([
+            'storeName' => [
+                'label' => 'Store Name',
+                'rules' => 'max_length[100]',
+            ],
+            'address' => [
+                'label' => 'Address',
+                'rules' => 'max_length[200]',
+            ],
+            'phone' => [
+                'label' => 'Phone',
+                'rules' => 'max_length[100]',
+            ],
+            'email' => [
+                'label' => 'Email',
+                'rules' => 'valid_email|is_unique[store.email]|max_length[100]',
+                'errors' => [
+                    'valid_email' => '{field} invalid.',
+                    'is_unique' => '{field} is already registered.'
+                ]
+            ],
+            'category' => [
+                'label' => 'Category',
+                'rules' => 'max_length[100]',
+            ],
+        ]);
+
+        if (!$valid) {
+            $response = [
+                'status' => 400,
+                'invalid' => $this->validator->getErrors()
+            ];
+            return $this->respond($response);
+        }
+
+        $this->model->update($storeId, $updateData);
+        $response = [
+            'status' => 200,
+            'message' => 'Store updated',
+        ];
+        return $this->respond($response);
+    }
+
+    public function delete($storeId = null)
+    {
+        $store = $this->model->find($storeId);
+        if (!$store) {
+            return $this->respond(['message' => 'Store not found', 'Store ID' => $storeId], 409);
+        }
+
+        $this->model->delete($storeId);
+
+        $employeeModel = new EmployeeModel();
+        $employeeModel->where('storeId', $storeId)->delete();
 
         $response = [
             'status' => 200,
