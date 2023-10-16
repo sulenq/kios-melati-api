@@ -80,7 +80,10 @@ class RetailStoreProductController extends ResourceController
             ],
             'category' => [
                 'label' => 'Category',
-                'rules' => 'required|max_length[100]',
+                'rules' => 'required|max_length[100]|check_category',
+                'errors' => [
+                    'check_category' => '{field} invalid'
+                ]
             ],
         ]);
         if (!$valid) {

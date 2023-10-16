@@ -70,4 +70,9 @@ class Validation extends BaseConfig
     {
         return $status === 'Owner' || $status === 'Permanent' || $status === 'Contract' || $status === 'Intern';
     }
+
+    public function check_category($category)
+    {
+        return $category === 'Food' || $category === 'Drink' || $category === 'Ingridient' || $category === 'Stationery' || $category === 'Hygiene' || $category === 'Medicine' || $category === 'Electronic' || $category === 'Cosmetic' || $category === 'Other';
+    }
 }
