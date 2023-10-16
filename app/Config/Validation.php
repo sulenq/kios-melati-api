@@ -68,14 +68,6 @@ class Validation extends BaseConfig
 
     public function check_status($status)
     {
-        return $status === 'Owner' || $status === 'Permanent' || $status === 'Contract' || $status === 'Magang';
+        return $status === 'Owner' || $status === 'Permanent' || $status === 'Contract' || $status === 'Intern';
     }
-
-    // public function check_employee($status)
-    // {
-    //     $employeeModel = new EmployeeModel();
-    //     $req = service('request');
-    //     $userId = $req->uri->getSegment(3);
-    //     $employee = $employeeModel->where('userId', $userId)
-    // }
 }

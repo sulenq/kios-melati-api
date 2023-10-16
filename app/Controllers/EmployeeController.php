@@ -114,13 +114,14 @@ class EmployeeController extends ResourceController
             return $this->respond($response);
         }
 
-        $this->model->insert([
+        $employeeData = [
             'userId' => esc($this->request->getVar('userId')),
             'storeId' => $storeId,
             'role' => esc($this->request->getVar('role')),
             'status' => esc($this->request->getVar('status')),
             'salary' => esc($this->request->getVar('salary'))
-        ]);
+        ];
+        $this->model->insert($employeeData);
 
         $response = [
             'status' => 201,
