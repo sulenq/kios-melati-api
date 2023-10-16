@@ -197,32 +197,23 @@ class StoreController extends ResourceController
             return $this->respond($response);
         }
 
-        $updateData = $this->request->getJSON();
-
-        if (!$updateData) {
-            $response = [
-                'status' => 400,
-                'message' => 'No data provided'
-            ];
-            return $this->respond($response);
-        }
-
+        $emailRules = "required|valid_email|max_length[100]|is_unique[store.email,id,$storeId]";
         $valid = $this->validate([
             'storeName' => [
                 'label' => 'Store Name',
-                'rules' => 'max_length[100]',
+                'rules' => 'required|max_length[100]',
             ],
             'address' => [
                 'label' => 'Address',
-                'rules' => 'max_length[200]',
+                'rules' => 'required|max_length[200]',
             ],
             'phone' => [
                 'label' => 'Phone',
-                'rules' => 'max_length[100]',
+                'rules' => 'required|max_length[100]',
             ],
             'email' => [
                 'label' => 'Email',
-                'rules' => 'valid_email|is_unique[store.email]|max_length[100]',
+                'rules' => $emailRules,
                 'errors' => [
                     'valid_email' => '{field} invalid.',
                     'is_unique' => '{field} is already registered.'
@@ -230,7 +221,7 @@ class StoreController extends ResourceController
             ],
             'category' => [
                 'label' => 'Category',
-                'rules' => 'max_length[100]',
+                'rules' => 'required|max_length[100]',
             ],
         ]);
 
@@ -241,6 +232,14 @@ class StoreController extends ResourceController
             ];
             return $this->respond($response);
         }
+
+        $updateData = [
+            'storeName' => esc($this->request->getVar('storeName')),
+            'address' => esc($this->request->getVar('address')),
+            'phone' => esc($this->request->getVar('phone')),
+            'email' => esc($this->request->getVar('email')),
+            'category' => esc($this->request->getVar('category')),
+        ];
 
         $this->model->update($storeId, $updateData);
         $response = [

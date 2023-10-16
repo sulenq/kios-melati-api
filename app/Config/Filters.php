@@ -26,6 +26,7 @@ class Filters extends BaseConfig
         'secureheaders' => SecureHeaders::class,
         'authJWT' => \App\Filters\AuthJWT::class,
         'authOwner' => \App\Filters\AuthOwner::class,
+        'authAdmin' => \App\Filters\AuthAdmin::class,
     ];
 
     /**

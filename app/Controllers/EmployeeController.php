@@ -40,7 +40,6 @@ class EmployeeController extends ResourceController
             'employee' => $employee
         ];
         return $this->respond($response);
-
     }
 
     public function readByStore($storeId = null)
@@ -68,15 +67,14 @@ class EmployeeController extends ResourceController
 
     public function create($storeId = null)
     {
-        $employeeModel = new EmployeeModel();
-        $employee = $employeeModel->where('userId', esc($this->request->getVar('userId')))
+        $employee = $this->model->where('userId', esc($this->request->getVar('userId')))
             ->where('storeId', $storeId)
             ->where('role', esc($this->request->getVar('role')))
             ->first();
         if ($employee) {
             $response = [
                 'status' => 400,
-                'invalid' => ['userId' => 'Employee is registered, User ID : ' . esc($this->request->getVar('userId'))]
+                'invalid' => ['userId' => 'Employee is already registered, User ID : ' . esc($this->request->getVar('userId'))]
             ];
             return $this->respond($response);
         }
@@ -116,7 +114,7 @@ class EmployeeController extends ResourceController
             return $this->respond($response);
         }
 
-        $employeeModel->insert([
+        $this->model->insert([
             'userId' => esc($this->request->getVar('userId')),
             'storeId' => $storeId,
             'role' => esc($this->request->getVar('role')),
@@ -144,14 +142,6 @@ class EmployeeController extends ResourceController
             return $this->respond($response);
         }
 
-        $updateData = $this->request->getJSON();
-        if (!$updateData) {
-            $response = [
-                'status' => 400,
-                'message' => 'No data provided'
-            ];
-            return $this->respond($response);
-        }
         $valid = $this->validate([
             "role" => [
                 'label' => 'Role',
@@ -169,7 +159,7 @@ class EmployeeController extends ResourceController
             ],
             'salary' => [
                 'label' => 'Salary',
-                'rules' => 'max_length[11]',
+                'rules' => 'required|max_length[11]',
             ],
         ]);
         if (!$valid) {
@@ -180,6 +170,12 @@ class EmployeeController extends ResourceController
             return $this->respond($response);
         }
 
+        $updateData = [
+            'role' => esc($this->request->getVar('role')),
+            'status' => esc($this->request->getVar('status')),
+            'salary' => esc($this->request->getVar('salary'))
+        ];
+
         $this->model->update($employeeId, $updateData);
         $response = [
             'status' => 200,
@@ -189,7 +185,7 @@ class EmployeeController extends ResourceController
         return $this->respond($response);
     }
 
-    public function delete($employeeId = null)
+    public function delete($storeId = null, $employeeId = null)
     {
         $employee = $this->model->find($employeeId);
 

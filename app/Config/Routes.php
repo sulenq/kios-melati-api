@@ -20,12 +20,18 @@ $routes->get('store/(:any)', 'StoreController::read/$1', ['filter' => 'authJWT']
 $routes->get('store-by-admin-user/(:any)', 'StoreController::readByAdminUser/$1', ['filter' => 'authJWT']);
 $routes->get('store-by-cashier-user/(:any)', 'StoreController::readByCashierUser/$1', ['filter' => 'authJWT']);
 $routes->post('store-create', 'StoreController::create', ['filter' => 'authJWT']);
-$routes->patch('store-update/(:any)', 'StoreController::update/$1', ['filter' => 'authJWT']);
+$routes->put('store-update/(:any)', 'StoreController::update/$1', ['filter' => 'authJWT']);
 $routes->delete('store-delete/(:any)', 'StoreController::delete/$1', ['filter' => 'authJWT']);
 
 $routes->get('employee', 'EmployeeController::readAll');
 $routes->get('employee-by-store/(:any)', 'EmployeeController::readByStore/$1', ['filter' => 'authJWT']);
 $routes->get('employee/(:any)', 'EmployeeController::read/$1', ['filter' => 'authJWT']);
 $routes->post('employee-create/(:any)', 'EmployeeController::create/$1', ['filter' => 'authOwner']);
-$routes->patch('employee-update/(:any)/(:any)', 'EmployeeController::update/$1/$2', ['filter' => 'authOwner']);
+$routes->put('employee-update/(:any)/(:any)', 'EmployeeController::update/$1/$2', ['filter' => 'authOwner']);
 $routes->delete('employee-delete/(:any)', 'EmployeeController::delete/$1', ['filter' => 'authJWT']);
+
+$routes->get('retailstoreproduct', 'RetailStoreProductController::readAll');
+$routes->get('retailstoreproduct/(:any)', 'RetailStoreProductController::read/$1');
+$routes->post('retailstoreproduct-create/(:any)', 'RetailStoreProductController::create/$1', ['filter' => 'authAdmin']);
+$routes->put('retailstoreproduct-update/(:any)/(:any)', 'RetailStoreProductController::update/$1/$2', ['filter' => 'authAdmin']);
+$routes->delete('retailstoreproduct-delete/(:any)/(:any)', 'RetailStoreProductController::delete/$1/$2', ['filter' => 'authAdmin']);
