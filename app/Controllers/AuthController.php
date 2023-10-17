@@ -11,19 +11,20 @@ class AuthController extends ResourceController
     protected $modelName = 'App\Models\UserModel';
     protected $format = 'json';
 
-
     public function generate_jwt($user) // return jwt token
     {
         $jwtKey = getenv('JWT_SECRET');
         $jwtAlg = getenv('JWT_ALG');
         $payload = [
             'id' => $user['id'],
+            'email' => $user['email'],
             'username' => $user['username'],
             'name' => $user['name'],
             'age' => $user['age'],
             'gender' => $user['gender'],
             'address' => $user['address'],
             'phone' => $user['phone'],
+            'image' => $user['image'],
             // Waktu token dibuat
             'iat' => time(),
             // Waktu kedaluwarsa token (12 jam)
@@ -70,16 +71,17 @@ class AuthController extends ResourceController
         $valid = $this->validate([
             'emailOrUsername' => [
                 'label' => 'Email or Username',
-                'rules' => 'required',
+                'rules' => 'required|max_length[100]',
             ],
             'password' => [
                 'label' => 'Password',
-                'rules' => 'required|min_length[8]',
+                'rules' => 'required|min_length[8]|max_length[100]',
             ],
         ]);
 
         if (!$valid) {
-            return $this->respond(['message' => $this->validator->getErrors()]);
+            $response = ['status' => 400, 'invalid' => $this->validator->getErrors(), 'message' => 'Sign In data invalid'];
+            return $this->respond($response);
         }
 
         $emailOrUsername = $this->request->getVar('emailOrUsername');
@@ -107,11 +109,27 @@ class AuthController extends ResourceController
             return $this->respond($response);
         }
 
+        $payload = [
+            'id' => $user['id'],
+            'email' => $user['email'],
+            'username' => $user['username'],
+            'name' => $user['name'],
+            'age' => $user['age'],
+            'gender' => $user['gender'],
+            'address' => $user['address'],
+            'phone' => $user['phone'],
+            'image' => $user['image'],
+            // Waktu token dibuat
+            'iat' => time(),
+            // Waktu kedaluwarsa token (12 jam)
+            'exp' => time() + 43200,
+        ];
         $jwt = $this->generate_jwt($user);
         $response = [
             'status' => 200,
             'message' => 'Signed In',
-            'jwt' => $jwt
+            'jwt' => $jwt,
+            'payload' => $payload
         ];
 
         return $this->respond($response);

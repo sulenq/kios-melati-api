@@ -150,13 +150,13 @@ class StoreController extends ResourceController
             'status' => 'Owner',
             'salary' => 0,
         ]);
-        $employeeModel->insert([
-            'userId' => $userId,
-            'storeId' => $storeId,
-            'role' => 'Cashier',
-            'status' => 'Owner',
-            'salary => 0'
-        ]);
+        // $employeeModel->insert([
+        //     'userId' => $userId,
+        //     'storeId' => $storeId,
+        //     'role' => 'Cashier',
+        //     'status' => 'Owner',
+        //     'salary => 0'
+        // ]);
 
         $response = [
             'status' => 201,
