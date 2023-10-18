@@ -4,12 +4,12 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class StoreModel extends Model
+class OutletModel extends Model
 {
-    protected $table = 'store';
+    protected $table = 'outlet';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $allowedFields = ['createdBy', 'storeName', 'address', 'phone', 'email', 'category', 'createdAt', 'updatedAt', 'deletedAt'];
+    protected $allowedFields = ['createdBy', 'outletName', 'address', 'phone', 'email', 'category', 'createdAt', 'updatedAt', 'deletedAt'];
 
     // Dates
     protected $useTimestamps = true;

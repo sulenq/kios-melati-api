@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\JwtPayload;
-use App\Models\StoreModel;
+use App\Models\OutletModel;
 use CodeIgniter\RESTful\ResourceController;
 
 class RetailStoreProductController extends ResourceController
@@ -48,9 +48,9 @@ class RetailStoreProductController extends ResourceController
         $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
 
-        $storeModel = new StoreModel();
-        $store = $storeModel->find($storeId);
-        if (!$store) {
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($storeId);
+        if (!$outlet) {
             $response = [
                 'status' => 404,
                 'message' => 'Store not found'
@@ -113,9 +113,9 @@ class RetailStoreProductController extends ResourceController
 
     public function update($storeId = null, $productId = null)
     {
-        $storeModel = new StoreModel();
-        $store = $storeModel->find($storeId);
-        if (!$store) {
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($storeId);
+        if (!$outlet) {
             $response = [
                 'status' => 404,
                 'message' => 'Store not found'

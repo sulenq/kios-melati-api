@@ -2,15 +2,15 @@
 
 namespace App\Controllers;
 
+use App\Models\UserModel;
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\EmployeeModel;
 use App\Libraries\JwtPayload;
 
 
-class StoreController extends ResourceController
+class OutletController extends ResourceController
 {
-    protected $modelName = 'App\Models\StoreModel';
-    protected $format = 'json';
+    protected $modelName = 'App\Models\OutletModel';
 
     public function readAll()
     {
@@ -25,13 +25,13 @@ class StoreController extends ResourceController
 
     public function read($storeId = null)
     {
-        $store = $this->model->find($storeId);
+        $outlet = $this->model->find($storeId);
 
-        if ($store) {
+        if ($outlet) {
             $response = [
                 'status' => 200,
                 'message' => 'Store found',
-                'storeData' => $store
+                'storeData' => $outlet
             ];
             return $this->respond($response, 200);
         } else {
@@ -44,54 +44,67 @@ class StoreController extends ResourceController
         }
     }
 
-    public function readByAdminUser($storeId = null)
+    public function readAllByUser()
     {
-        $employeeModel = new EmployeeModel();
-        $employee = $employeeModel->where('userId', $storeId)
-            ->where('role', 'Admin')
-            ->findAll();
+        $jwt = new JwtPayload($this->request);
+        $payload = (array) $jwt->getPayload();
+        $userId = $payload['id'];
 
-        if ($employee) {
-            $response = [
-                'status' => 200,
-                'message' => 'Store found',
-                'storeData' => $employee
-            ];
-            return $this->respond($response, 200);
-        } else {
+        $userModel = new UserModel();
+        $user = $userModel->find($userId);
+        if (!$user) {
             $response = [
                 'status' => 404,
-                'message' => 'Store not found',
-                'userId' => $storeId
+                'message' => 'User not found',
+                'userId' => $userId
             ];
             return $this->respond($response);
         }
-    }
 
-    public function readByCashierUser($storeId = null)
-    {
         $employeeModel = new EmployeeModel();
-        $employee = $employeeModel->where('userId', $storeId)
-            ->where('role', 'Cashier')
+        $employees = $employeeModel->where('userId', $userId)
             ->findAll();
-
-        if ($employee) {
-            $response = [
-                'status' => 200,
-                'message' => 'Store found',
-                'storeData' => $employee
-            ];
-            return $this->respond($response, 200);
-        } else {
+        if (!$employees) {
             $response = [
                 'status' => 404,
-                'message' => 'Store not found',
-                'userId' => $storeId
+                'message' => 'Outlet not found',
+                'userId' => $userId
             ];
             return $this->respond($response);
         }
-    }
 
+        // Inisialisasi array untuk menyimpan daftar toko
+        $stores = [];
+
+        // Loop melalui entitas Employee untuk mendapatkan storeId
+        foreach ($employees as $employee) {
+            $storeId = $employee['storeId'];
+
+            // Ambil entitas Store berdasarkan storeId
+            $outlet = $this->model->find($storeId);
+
+            if ($outlet) {
+                $stores[] = $outlet;
+            }
+        }
+
+        // Periksa apakah ada toko yang ditemukan
+        if (empty($stores)) {
+            $response = [
+                'status' => 404,
+                'message' => 'Store not found',
+                'userId' => $userId
+            ];
+            return $this->respond($response);
+        }
+
+        $response = [
+            'status' => 200,
+            'message' => 'Stores found',
+            'stores' => $stores
+        ];
+        return $this->respond($response);
+    }
     public function create()
     {
         $jwt = new JwtPayload($this->request);
@@ -99,8 +112,8 @@ class StoreController extends ResourceController
         $userId = $payload['id'];
 
         $valid = $this->validate([
-            'storeName' => [
-                'label' => 'Store Name',
+            'outletName' => [
+                'label' => 'Outlet Name',
                 'rules' => 'required|max_length[100]',
             ],
             'address' => [
@@ -113,10 +126,10 @@ class StoreController extends ResourceController
             ],
             'email' => [
                 'label' => 'Email',
-                'rules' => 'required|valid_email|is_unique[store.email]|max_length[100]',
+                'rules' => 'required|valid_email|is_unique[outlet.email]|max_length[100]',
                 'errors' => [
-                    'valid_email' => '{field} invalid.',
-                    'is_unique' => '{field} is already registered.'
+                    'valid_email' => '{field} invalid',
+                    'is_unique' => '{field} is already registered'
                 ]
             ],
             'category' => [
@@ -128,6 +141,7 @@ class StoreController extends ResourceController
         if (!$valid) {
             $response = [
                 'status' => 400,
+                'message' => 'Request invalid',
                 'invalid' => $this->validator->getErrors()
             ];
             return $this->respond($response);
@@ -135,7 +149,7 @@ class StoreController extends ResourceController
 
         $storeId = $this->model->insert([
             'createdBy' => $userId,
-            'storeName' => esc($this->request->getVar('storeName')),
+            'outletName' => esc($this->request->getVar('outletName')),
             'address' => esc($this->request->getVar('address')),
             'phone' => esc($this->request->getVar('phone')),
             'email' => esc($this->request->getVar('email')),
@@ -160,7 +174,7 @@ class StoreController extends ResourceController
 
         $response = [
             'status' => 201,
-            'message' => 'Store registered. Store Name : ' . $this->request->getVar('storeName')
+            'message' => 'Store registered. Store Name : ' . $this->request->getVar('outletName')
         ];
 
         return $this->respondCreated($response, 201);
@@ -172,8 +186,8 @@ class StoreController extends ResourceController
         $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
 
-        $store = $this->model->find($storeId);
-        if (!$store) {
+        $outlet = $this->model->find($storeId);
+        if (!$outlet) {
             $response = [
                 'status' => 404,
                 'message' => 'Store not found',
@@ -197,9 +211,9 @@ class StoreController extends ResourceController
             return $this->respond($response);
         }
 
-        $emailRules = "required|valid_email|max_length[100]|is_unique[store.email,id,$storeId]";
+        $emailRules = "required|valid_email|max_length[100]|is_unique[outlet.email,id,$storeId]";
         $valid = $this->validate([
-            'storeName' => [
+            'outletName' => [
                 'label' => 'Store Name',
                 'rules' => 'required|max_length[100]',
             ],
@@ -234,7 +248,7 @@ class StoreController extends ResourceController
         }
 
         $updateData = [
-            'storeName' => esc($this->request->getVar('storeName')),
+            'outletName' => esc($this->request->getVar('outletName')),
             'address' => esc($this->request->getVar('address')),
             'phone' => esc($this->request->getVar('phone')),
             'email' => esc($this->request->getVar('email')),
@@ -251,8 +265,8 @@ class StoreController extends ResourceController
 
     public function delete($storeId = null)
     {
-        $store = $this->model->find($storeId);
-        if (!$store) {
+        $outlet = $this->model->find($storeId);
+        if (!$outlet) {
             return $this->respond(['message' => 'Store not found', 'Store ID' => $storeId], 409);
         }
 
@@ -265,7 +279,7 @@ class StoreController extends ResourceController
             'status' => 200,
             'message' => 'Store deleted',
             'storeId' => $storeId,
-            'storeName' => $store['storeName']
+            'outletName' => $outlet['outletName']
         ];
 
         return $this->respond($response);

@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class StoreModel extends Migration
+class OutletModel extends Migration
 {
     public function up()
     {
@@ -15,7 +15,7 @@ class StoreModel extends Migration
                 'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'storeName' => [
+            'outletName' => [
                 'type' => 'VARCHAR',
                 'constraint' => '100',
             ],
@@ -50,11 +50,11 @@ class StoreModel extends Migration
             ],
         ]);
         $this->forge->addKey('id', true); // primary key
-        $this->forge->createTable('store');
+        $this->forge->createTable('outlet');
     }
 
     public function down()
     {
-        $this->forge->dropTable('store');
+        $this->forge->dropTable('outlet');
     }
 }

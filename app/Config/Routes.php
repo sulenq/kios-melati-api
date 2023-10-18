@@ -15,13 +15,12 @@ $routes->post('api/user-create', 'UserController::create');
 $routes->post('api/signin', 'AuthController::signin');
 $routes->post('api/verify-token', 'AuthController::verifyToken');
 
-$routes->get('api/store', 'StoreController::readAll', ['filter' => 'authJWT']);
-$routes->get('api/store/(:any)', 'StoreController::read/$1', ['filter' => 'authJWT']);
-$routes->get('api/store-by-admin-user/(:any)', 'StoreController::readByAdminUser/$1', ['filter' => 'authJWT']);
-$routes->get('api/store-by-cashier-user/(:any)', 'StoreController::readByCashierUser/$1', ['filter' => 'authJWT']);
-$routes->post('api/store-create', 'StoreController::create', ['filter' => 'cors, authJWT']);
-$routes->put('api/store-update/(:any)', 'StoreController::update/$1', ['filter' => 'authJWT']);
-$routes->delete('api/store-delete/(:any)', 'StoreController::delete/$1', ['filter' => 'authJWT']);
+$routes->get('api/outlet', 'OutletController::readAll', ['filter' => 'authJWT']);
+$routes->get('api/outlet/(:any)', 'OutletController::read/$1', ['filter' => 'authJWT']);
+$routes->get('api/outlet-by-user', 'OutletController::readAllByUser', ['filter' => 'authJWT']);
+$routes->post('api/outlet-create', 'OutletController::create', ['filter' => 'authJWT']);
+$routes->put('api/outlet-update/(:any)', 'OutletController::update/$1', ['filter' => 'authOwner']);
+$routes->delete('api/outlet-delete/(:any)', 'OutletController::delete/$1', ['filter' => 'authOwner']);
 
 $routes->get('api/employee', 'EmployeeController::readAll');
 $routes->get('api/employee-by-store/(:any)', 'EmployeeController::readByStore/$1', ['filter' => 'authJWT']);

@@ -2,7 +2,6 @@
 
 namespace Config;
 
-use App\Models\EmployeeModel;
 use App\Models\UserModel;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Validation\StrictRules\CreditCardRules;

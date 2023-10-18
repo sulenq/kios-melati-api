@@ -2,7 +2,7 @@
 namespace App\Filters;
 
 use App\Models\EmployeeModel;
-use App\Models\StoreModel;
+use App\Models\OutletModel;
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 use CodeIgniter\Filters\FilterInterface;
@@ -43,9 +43,9 @@ class AuthAdmin implements FilterInterface
         $userId = $payload['id'];
         $storeId = $req->uri->getSegment(2);
 
-        $storeModel = new StoreModel();
-        $store = $storeModel->find($storeId);
-        if (!$store) {
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($storeId);
+        if (!$outlet) {
             $response = [
                 'status' => 404,
                 'message' => 'Store not found',
