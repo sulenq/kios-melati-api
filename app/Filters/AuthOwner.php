@@ -41,22 +41,22 @@ class AuthOwner implements FilterInterface
 
         $payload = (array) $decode;
         $userId = $payload['id'];
-        $storeId = $req->uri->getSegment(2);
+        $outletId = $req->uri->getSegment(3);
 
         $outletModel = new OutletModel();
-        $outlet = $outletModel->find($storeId);
+        $outlet = $outletModel->find($outletId);
         if (!$outlet) {
             $response = [
                 'status' => 404,
                 'message' => 'Store not found',
-                'Store ID' => $storeId
+                'Store ID' => $outletId
             ];
             return $res->setJSON($response);
         }
 
         $employeeModel = new EmployeeModel();
         $employee = $employeeModel->where('userId', $userId)
-            ->where('storeId', $storeId)
+            ->where('outletId', $outletId)
             ->where('status', 'Owner')
             ->first();
         if (!$employee) {
@@ -64,7 +64,7 @@ class AuthOwner implements FilterInterface
                 'status' => 403,
                 'message' => 'You are not authorized to do this action',
                 'userId' => $userId,
-                'storeId' => $storeId
+                'outletId' => $outletId
             ];
             return $res->setJSON($response);
         }

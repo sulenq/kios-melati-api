@@ -6,9 +6,9 @@ use App\Libraries\JwtPayload;
 use App\Models\OutletModel;
 use CodeIgniter\RESTful\ResourceController;
 
-class RetailStoreProductController extends ResourceController
+class RetailProductController extends ResourceController
 {
-    protected $modelName = 'App\Models\RetailStoreProductModel';
+    protected $modelName = 'App\Models\RetailProductModel';
 
     public function readAll()
     {
@@ -42,18 +42,48 @@ class RetailStoreProductController extends ResourceController
         return $this->respond($response);
     }
 
-    public function create($storeId = null)
+    public function readAllByOutlet($outletId = null)
+    {
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($outletId);
+        if (!$outlet) {
+            $response = [
+                'status' => 404,
+                'message' => 'Outlet not found',
+                'outletId' => $outletId
+            ];
+            return $this->respond($response);
+        }
+
+        $products = $this->model->where('outletId', $outletId)->findAll();
+        if (!$products) {
+            $response = [
+                'status' => 404,
+                'message' => 'Products not found',
+                'outletId' => $outletId
+            ];
+            return $this->respond($response);
+        }
+        $response = [
+            'status' => 200,
+            'message' => 'Products found',
+            'products' => $products
+        ];
+        return $this->respond($response);
+    }
+
+    public function create($outletId = null)
     {
         $jwt = new JwtPayload($this->request);
         $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
 
         $outletModel = new OutletModel();
-        $outlet = $outletModel->find($storeId);
+        $outlet = $outletModel->find($outletId);
         if (!$outlet) {
             $response = [
                 'status' => 404,
-                'message' => 'Store not found'
+                'message' => 'Outlet not found'
             ];
             $this->respond($response);
         }
@@ -61,9 +91,10 @@ class RetailStoreProductController extends ResourceController
         $valid = $this->validate([
             'code' => [
                 'label' => 'Code',
-                'rules' => 'required|max_length[100]|is_unique[retail_store_product.code]',
+                'rules' => "required|max_length[100]|is_code_unique_by_outlet[$outletId]",
                 'errors' => [
-                    'is_unique' => 'Code is already registered'
+                    'is_unique' => 'Code is already registered',
+                    'is_code_unique_by_outlet' => 'Code is already registered in this outlet'
                 ]
             ],
             "name" => [
@@ -89,13 +120,14 @@ class RetailStoreProductController extends ResourceController
         if (!$valid) {
             $response = [
                 'status' => 400,
+                'message' => 'Add Product Failed',
                 'invalid' => $this->validator->getErrors()
             ];
             return $this->respond($response);
         }
 
         $productData = [
-            'storeId' => $storeId,
+            'outletId' => $outletId,
             'createdBy' => $userId,
             'code' => esc($this->request->getVar('code')),
             'name' => esc($this->request->getVar('name')),
@@ -106,32 +138,50 @@ class RetailStoreProductController extends ResourceController
         $this->model->insert($productData);
         $response = [
             'status' => 201,
-            'invalid' => 'Product added'
+            'message' => 'Product added',
+            'productName' => $productData['name']
         ];
         return $this->respond($response);
     }
 
-    public function update($storeId = null, $productId = null)
+    public function update($outletId = null, $productId = null)
     {
         $outletModel = new OutletModel();
-        $outlet = $outletModel->find($storeId);
+        $outlet = $outletModel->find($outletId);
         if (!$outlet) {
             $response = [
                 'status' => 404,
-                'message' => 'Store not found'
+                'message' => 'Outlet not found',
+                'outletId' => $outletId
             ];
-            $this->respond($response);
+            return $this->respond($response);
         }
 
-        $codeValidation = "required|max_length[100]|is_unique[retail_store_product.code,id,$productId]";
+        $product = $this->model->find($productId);
+        if (!$product) {
+            $response = [
+                'status' => 404,
+                'message' => 'Product not found',
+                'productId' => $productId
+            ];
+            return $this->respond($response);
+        }
+
+        $codeValid = true;
+        if ($product['code'] !== esc($this->request->getVar('code'))) {
+            $codeValid = $this->validate([
+                'code' => [
+                    'label' => 'Code',
+                    'rules' => "required|max_length[100]|is_code_unique_by_outlet[$outletId]",
+                    'errors' => [
+                        'is_unique' => 'Code is already registered',
+                        'is_code_unique_by_outlet' => 'Code is already registered in this outlet'
+                    ]
+                ],
+            ]);
+        }
+
         $valid = $this->validate([
-            'code' => [
-                'label' => 'Code',
-                'rules' => $codeValidation,
-                'errors' => [
-                    'is_unique' => 'Code is already registered'
-                ]
-            ],
             "name" => [
                 'label' => 'Name',
                 'rules' => 'required|max_length[100]',
@@ -149,9 +199,19 @@ class RetailStoreProductController extends ResourceController
                 'rules' => 'required|max_length[100]',
             ],
         ]);
+        if (!$codeValid) {
+            $response = [
+                'status' => 400,
+                'message' => 'Update product failed',
+                'invalid' => $this->validator->getErrors()
+            ];
+            return $this->respond($response);
+        }
+
         if (!$valid) {
             $response = [
                 'status' => 400,
+                'message' => 'Update product failed',
                 'invalid' => $this->validator->getErrors()
             ];
             return $this->respond($response);
@@ -166,14 +226,14 @@ class RetailStoreProductController extends ResourceController
         ];
         $this->model->update($productId, $productData);
         $response = [
-            'status' => 201,
+            'status' => 200,
             'invalid' => 'Product updated',
             'productId' => $productId
         ];
         return $this->respond($response);
     }
 
-    public function delete($storeId = null, $productId = null)
+    public function delete($outletId = null, $productId = null)
     {
         $product = $this->model->find($productId);
 

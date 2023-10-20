@@ -9,7 +9,7 @@ class CategoryModel extends Model
     protected $table = 'category';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $allowedFields = ['storeId', 'category'];
+    protected $allowedFields = ['outletId', 'category'];
 
     // Dates
     protected $useTimestamps = true;

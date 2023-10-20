@@ -23,22 +23,22 @@ class OutletController extends ResourceController
         return $this->respond($response, 200);
     }
 
-    public function read($storeId = null)
+    public function read($outletId = null)
     {
-        $outlet = $this->model->find($storeId);
+        $outlet = $this->model->find($outletId);
 
         if ($outlet) {
             $response = [
                 'status' => 200,
-                'message' => 'Store found',
-                'storeData' => $outlet
+                'message' => 'Outlet found',
+                'outlet' => $outlet
             ];
             return $this->respond($response, 200);
         } else {
             $response = [
                 'status' => 404,
-                'message' => 'Store not found',
-                'storeId' => $storeId
+                'message' => 'Outlet not found',
+                'outletId' => $outletId
             ];
             return $this->respond($response);
         }
@@ -67,32 +67,32 @@ class OutletController extends ResourceController
         if (!$employees) {
             $response = [
                 'status' => 404,
-                'message' => 'Outlet not found',
+                'message' => 'Employee not found',
                 'userId' => $userId
             ];
             return $this->respond($response);
         }
 
         // Inisialisasi array untuk menyimpan daftar toko
-        $stores = [];
+        $outlets = [];
 
-        // Loop melalui entitas Employee untuk mendapatkan storeId
+        // Loop melalui entitas Employee untuk mendapatkan outletId
         foreach ($employees as $employee) {
-            $storeId = $employee['storeId'];
+            $outletId = $employee['outletId'];
 
-            // Ambil entitas Store berdasarkan storeId
-            $outlet = $this->model->find($storeId);
+            // Ambil entitas Store berdasarkan outletId
+            $outlet = $this->model->find($outletId);
 
             if ($outlet) {
-                $stores[] = $outlet;
+                $outlets[] = ['outlet' => $outlet, 'employee' => $employee];
             }
         }
 
         // Periksa apakah ada toko yang ditemukan
-        if (empty($stores)) {
+        if (empty($outlets)) {
             $response = [
                 'status' => 404,
-                'message' => 'Store not found',
+                'message' => 'Outlet not found',
                 'userId' => $userId
             ];
             return $this->respond($response);
@@ -100,8 +100,8 @@ class OutletController extends ResourceController
 
         $response = [
             'status' => 200,
-            'message' => 'Stores found',
-            'stores' => $stores
+            'message' => 'Outlet found',
+            'data' => $outlets
         ];
         return $this->respond($response);
     }
@@ -147,7 +147,7 @@ class OutletController extends ResourceController
             return $this->respond($response);
         }
 
-        $storeId = $this->model->insert([
+        $outletId = $this->model->insert([
             'createdBy' => $userId,
             'outletName' => esc($this->request->getVar('outletName')),
             'address' => esc($this->request->getVar('address')),
@@ -159,14 +159,15 @@ class OutletController extends ResourceController
         $employeeModel = new EmployeeModel();
         $employeeModel->insert([
             'userId' => $userId,
-            'storeId' => $storeId,
+            'outletId' => $outletId,
             'role' => 'Admin',
+            'roleColor' => 'purple',
             'status' => 'Owner',
             'salary' => 0,
         ]);
         // $employeeModel->insert([
         //     'userId' => $userId,
-        //     'storeId' => $storeId,
+        //     'outletId' => $outletId,
         //     'role' => 'Cashier',
         //     'status' => 'Owner',
         //     'salary => 0'
@@ -180,25 +181,25 @@ class OutletController extends ResourceController
         return $this->respondCreated($response, 201);
     }
 
-    public function update($storeId = null)
+    public function update($outletId = null)
     {
         $jwt = new JwtPayload($this->request);
         $payload = (array) $jwt->getPayload();
         $userId = $payload['id'];
 
-        $outlet = $this->model->find($storeId);
+        $outlet = $this->model->find($outletId);
         if (!$outlet) {
             $response = [
                 'status' => 404,
                 'message' => 'Store not found',
-                'Store ID' => $storeId
+                'Store ID' => $outletId
             ];
             return $this->respond($response);
         }
 
         $employeeModel = new EmployeeModel();
         $employee = $employeeModel->where('userId', $userId)
-            ->where('storeId', $storeId)
+            ->where('outletId', $outletId)
             ->where('status', 'Owner')
             ->first();
         if (!$employee) {
@@ -206,12 +207,12 @@ class OutletController extends ResourceController
                 'status' => 403,
                 'message' => 'You are not authorized to do this action',
                 'userId' => $userId,
-                'storeId' => $storeId
+                'outletId' => $outletId
             ];
             return $this->respond($response);
         }
 
-        $emailRules = "required|valid_email|max_length[100]|is_unique[outlet.email,id,$storeId]";
+        $emailRules = "required|valid_email|max_length[100]|is_unique[outlet.email,id,$outletId]";
         $valid = $this->validate([
             'outletName' => [
                 'label' => 'Store Name',
@@ -255,7 +256,7 @@ class OutletController extends ResourceController
             'category' => esc($this->request->getVar('category')),
         ];
 
-        $this->model->update($storeId, $updateData);
+        $this->model->update($outletId, $updateData);
         $response = [
             'status' => 200,
             'message' => 'Store updated',
@@ -263,22 +264,22 @@ class OutletController extends ResourceController
         return $this->respond($response);
     }
 
-    public function delete($storeId = null)
+    public function delete($outletId = null)
     {
-        $outlet = $this->model->find($storeId);
+        $outlet = $this->model->find($outletId);
         if (!$outlet) {
-            return $this->respond(['message' => 'Store not found', 'Store ID' => $storeId], 409);
+            return $this->respond(['message' => 'Store not found', 'Store ID' => $outletId], 409);
         }
 
-        $this->model->delete($storeId);
+        $this->model->delete($outletId);
 
         $employeeModel = new EmployeeModel();
-        $employeeModel->where('storeId', $storeId)->delete();
+        $employeeModel->where('outletId', $outletId)->delete();
 
         $response = [
             'status' => 200,
             'message' => 'Store deleted',
-            'storeId' => $storeId,
+            'outletId' => $outletId,
             'outletName' => $outlet['outletName']
         ];
 

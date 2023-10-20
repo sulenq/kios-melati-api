@@ -24,7 +24,7 @@ class Filters extends BaseConfig
         'honeypot' => Honeypot::class,
         'invalidchars' => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'authJWT' => \App\Filters\AuthJWT::class,
+        'authJwt' => \App\Filters\AuthJWT::class,
         'authOwner' => \App\Filters\AuthOwner::class,
         'authAdmin' => \App\Filters\AuthAdmin::class,
         'cors' => \Fluent\Cors\Filters\CorsFilter::class,
@@ -70,7 +70,8 @@ class Filters extends BaseConfig
      * Example:
      * 'isLoggedIn' => ['before' => ['account/*', 'profiles/*']]
      */
-    public array $filters = [
+    public array
+    $filters = [
         'cors' => [
             'before' => ['api/*'],
             'after' => ['api/*']

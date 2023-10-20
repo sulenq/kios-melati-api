@@ -9,7 +9,7 @@ class EmployeeModel extends Model
     protected $table = 'employee';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $allowedFields = ['userId', 'storeId', 'role', 'status', 'salary', 'createdAt', 'updatedAt', 'deletedAt'];
+    protected $allowedFields = ['userId', 'outletId', 'role', 'status', 'salary', 'createdAt', 'updatedAt', 'deletedAt'];
 
     // Dates
     protected $useTimestamps = true;

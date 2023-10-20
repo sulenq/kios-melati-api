@@ -2,6 +2,8 @@
 
 namespace Config;
 
+use App\Models\OutletModel;
+use App\Models\RetailProductModel;
 use App\Models\UserModel;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Validation\StrictRules\CreditCardRules;
@@ -73,5 +75,48 @@ class Validation extends BaseConfig
     public function check_category($category)
     {
         return $category === 'Food' || $category === 'Drink' || $category === 'Ingridient' || $category === 'Stationery' || $category === 'Hygiene' || $category === 'Medicine' || $category === 'Electronic' || $category === 'Cosmetic' || $category === 'Other';
+    }
+
+    public function is_code_unique_by_outlet($code, $outletId)
+    {
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($outletId);
+        if (!$outlet) {
+            return false;
+        }
+
+        $retailProductModel = new RetailProductModel();
+        $result = $retailProductModel->where('code', $code)
+            ->where('outletId', $outletId)
+            ->countAllResults();
+
+        return $result === 0;
+    }
+
+    public function update_is_code_unique_by_outlet($code, $outletId, $productId)
+    {
+        log_message('info', 'Code: ' . $code);
+        log_message('info', 'Outlet ID: ' . $outletId);
+        log_message('info', 'Product ID: ' . gettype($productId));
+
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($outletId);
+        if (!$outlet) {
+            return false;
+        }
+
+        $retailProductModel = new RetailProductModel();
+        $query = $retailProductModel->where('code', $code)
+            ->where('outletId', $outletId);
+
+        if (!empty($productId)) {
+            $query->where('id !=', (int) $productId);
+        }
+
+        $result = $query->countAllResults();
+
+        log_message('info', 'Result: ' . $result);
+
+        return $result === 0;
     }
 }

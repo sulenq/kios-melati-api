@@ -41,7 +41,7 @@ class CategoryController extends ResourceController
         return $this->respond($response);
     }
 
-    public function create($storeId = null)
+    public function create($outletId = null)
     {
         $valid = $this->validate(
             [

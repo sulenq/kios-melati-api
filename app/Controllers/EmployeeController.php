@@ -42,16 +42,16 @@ class EmployeeController extends ResourceController
         return $this->respond($response);
     }
 
-    public function readByStore($storeId = null)
+    public function readByStore($outletId = null)
     {
-        $employees = $this->model->where('storeId', $storeId)
+        $employees = $this->model->where('outletId', $outletId)
             ->findAll();
 
         if (!$employees) {
             $response = [
                 'status' => 404,
                 'message' => 'Employees not found',
-                'storeId' => $storeId
+                'outletId' => $outletId
             ];
             return $this->respond($response);
         }
@@ -65,10 +65,10 @@ class EmployeeController extends ResourceController
 
     }
 
-    public function create($storeId = null)
+    public function create($outletId = null)
     {
         $employee = $this->model->where('userId', esc($this->request->getVar('userId')))
-            ->where('storeId', $storeId)
+            ->where('outletId', $outletId)
             ->where('role', esc($this->request->getVar('role')))
             ->first();
         if ($employee) {
@@ -116,7 +116,7 @@ class EmployeeController extends ResourceController
 
         $employeeData = [
             'userId' => esc($this->request->getVar('userId')),
-            'storeId' => $storeId,
+            'outletId' => $outletId,
             'role' => esc($this->request->getVar('role')),
             'status' => esc($this->request->getVar('status')),
             'salary' => esc($this->request->getVar('salary'))
@@ -131,7 +131,7 @@ class EmployeeController extends ResourceController
         return $this->respond($response);
     }
 
-    public function update($storeId = null, $employeeId = null)
+    public function update($outletId = null, $employeeId = null)
     {
         $employee = $this->model->find($employeeId);
         if (!$employee) {
@@ -186,7 +186,7 @@ class EmployeeController extends ResourceController
         return $this->respond($response);
     }
 
-    public function delete($storeId = null, $employeeId = null)
+    public function delete($outletId = null, $employeeId = null)
     {
         $employee = $this->model->find($employeeId);
 
