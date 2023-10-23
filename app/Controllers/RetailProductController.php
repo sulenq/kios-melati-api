@@ -37,7 +37,7 @@ class RetailProductController extends ResourceController
         $response = [
             'status' => 200,
             'message' => 'Product found',
-            'employee' => $product
+            'data' => $product
         ];
         return $this->respond($response);
     }
@@ -59,7 +59,7 @@ class RetailProductController extends ResourceController
         if (!$products) {
             $response = [
                 'status' => 404,
-                'message' => 'Products not found',
+                'message' => 'No Products',
                 'outletId' => $outletId
             ];
             return $this->respond($response);
@@ -93,6 +93,7 @@ class RetailProductController extends ResourceController
                 'label' => 'Code',
                 'rules' => "required|max_length[100]|is_code_unique_by_outlet[$outletId]",
                 'errors' => [
+                    'required' => 'Code is required',
                     'is_unique' => 'Code is already registered',
                     'is_code_unique_by_outlet' => 'Code is already registered in this outlet'
                 ]
@@ -100,19 +101,29 @@ class RetailProductController extends ResourceController
             "name" => [
                 'label' => 'Name',
                 'rules' => 'required|max_length[100]',
+                'errors' => [
+                    'required' => 'Name is required',
+                ]
             ],
             'price' => [
                 'label' => 'Price',
                 'rules' => 'required|max_length[100]',
+                'errors' => [
+                    'required' => 'Price is required',
+                ]
             ],
             'stock' => [
                 'label' => 'Stock',
                 'rules' => 'required|max_length[11]',
+                'errors' => [
+                    'required' => 'Stock is required'
+                ]
             ],
             'category' => [
                 'label' => 'Category',
                 'rules' => 'required|max_length[100]|check_category',
                 'errors' => [
+                    'required' => 'Category is required',
                     'check_category' => '{field} invalid'
                 ]
             ],
@@ -227,7 +238,7 @@ class RetailProductController extends ResourceController
         $this->model->update($productId, $productData);
         $response = [
             'status' => 200,
-            'invalid' => 'Product updated',
+            'message' => 'Product updated',
             'productId' => $productId
         ];
         return $this->respond($response);
@@ -250,7 +261,7 @@ class RetailProductController extends ResourceController
         $this->model->delete($productId);
         $response = [
             'status' => 200,
-            'message' => 'Product deleted, Product ID : ' . $productId,
+            'message' => 'Product deleted',
             'productId' => $productId,
         ];
 

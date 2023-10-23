@@ -31,7 +31,7 @@ class OutletController extends ResourceController
             $response = [
                 'status' => 200,
                 'message' => 'Outlet found',
-                'outlet' => $outlet
+                'data' => $outlet
             ];
             return $this->respond($response, 200);
         } else {

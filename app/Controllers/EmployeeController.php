@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\JwtPayload;
 use App\Models\EmployeeModel;
+use App\Models\OutletModel;
 use CodeIgniter\RESTful\ResourceController;
 
 class EmployeeController extends ResourceController
@@ -37,12 +38,12 @@ class EmployeeController extends ResourceController
         $response = [
             'status' => 200,
             'message' => 'Employee found',
-            'employee' => $employee
+            'data' => $employee
         ];
         return $this->respond($response);
     }
 
-    public function readByStore($outletId = null)
+    public function readByOutlet($outletId = null)
     {
         $employees = $this->model->where('outletId', $outletId)
             ->findAll();
@@ -63,6 +64,40 @@ class EmployeeController extends ResourceController
         ];
         return $this->respond($response);
 
+    }
+
+    public function readWork($outletId = null, $employeeId = null)
+    {
+        $outletModel = new OutletModel();
+        $outlet = $outletModel->find($outletId);
+        if (!$outlet) {
+            $response = [
+                'status' => 404,
+                'message' => 'Outlet not found',
+                'outletId' => $outletId
+            ];
+            return $this->respond($response);
+        }
+
+        $employee = $this->model->find($employeeId);
+        if (!$employee) {
+            $response = [
+                'status' => 404,
+                'message' => 'Employees not found',
+                'employeeId' => $outletId
+            ];
+            return $this->respond($response);
+        }
+
+        $response = [
+            'status' => 200,
+            'message' => 'Work data found',
+            'data' => [
+                'outlet' => $outlet,
+                'employee' => $employee
+            ]
+        ];
+        return $this->respond($response);
     }
 
     public function create($outletId = null)
