@@ -53,7 +53,7 @@ class Validation extends BaseConfig
 
     public function check_role($role)
     {
-        return $role === 'Admin' || $role === 'Cashier';
+        return $role === 'CEO' || $role === 'Admin' || $role === 'Inventory' || $role === 'Cashier';
     }
 
     public function check_user($id)

@@ -67,7 +67,7 @@ class RetailProductController extends ResourceController
         $response = [
             'status' => 200,
             'message' => 'Products found',
-            'products' => $products
+            'data' => $products
         ];
         return $this->respond($response);
     }

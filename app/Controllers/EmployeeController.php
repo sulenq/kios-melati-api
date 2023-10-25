@@ -2,9 +2,9 @@
 
 namespace App\Controllers;
 
-use App\Libraries\JwtPayload;
-use App\Models\EmployeeModel;
+
 use App\Models\OutletModel;
+use App\Models\UserModel;
 use CodeIgniter\RESTful\ResourceController;
 
 class EmployeeController extends ResourceController
@@ -66,8 +66,19 @@ class EmployeeController extends ResourceController
 
     }
 
-    public function readWork($outletId = null, $employeeId = null)
+    public function readWork($userId = null, $outletId = null, $employeeId = null)
     {
+        $userModel = new UserModel();
+        $user = $userModel->find($userId);
+        if (!$user) {
+            $response = [
+                'status' => 404,
+                'message' => 'User not found',
+                'userId' => $userId
+            ];
+            return $this->respond($response);
+        }
+
         $outletModel = new OutletModel();
         $outlet = $outletModel->find($outletId);
         if (!$outlet) {
@@ -79,7 +90,11 @@ class EmployeeController extends ResourceController
             return $this->respond($response);
         }
 
-        $employee = $this->model->find($employeeId);
+        $employee = $this->model->where('id', $employeeId)
+            ->where('userId', $userId)
+            ->where('outletId', $outletId)
+            ->first();
+
         if (!$employee) {
             $response = [
                 'status' => 404,

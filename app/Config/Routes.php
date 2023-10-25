@@ -25,7 +25,7 @@ $routes->delete('api/outlet-delete/(:any)', 'OutletController::delete/$1', ['fil
 $routes->get('api/employee', 'EmployeeController::readAll');
 $routes->get('api/employee-by-store/(:any)', 'EmployeeController::readByOutlet/$1', ['filter' => 'authJwt']);
 $routes->get('api/employee/(:any)', 'EmployeeController::read/$1', ['filter' => 'authJwt']);
-$routes->get('api/work/(:any)/(:any)', 'EmployeeController::readWork/$1/$2', ['filter' => 'authJwt']);
+$routes->get('api/work/(:any)/(:any)/(:any)', 'EmployeeController::readWork/$1/$2/$3', ['filter' => 'authJwt']);
 $routes->post('api/employee-create/(:any)', 'EmployeeController::create/$1', ['filter' => 'authOwner']);
 $routes->put('api/employee-update/(:any)/(:any)', 'EmployeeController::update/$1/$2', ['filter' => 'authOwner']);
 $routes->delete('api/employee-delete/(:any)', 'EmployeeController::delete/$1', ['filter' => 'authJwt']);
