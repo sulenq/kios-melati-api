@@ -6,7 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
-// $routes->get('/', 'Home::index');
+$routes->get('/', 'Home::index');
 
 $routes->get('api/user', 'UserController::readAll');
 $routes->get('api/user/(:any)', 'UserController::read/$1');
